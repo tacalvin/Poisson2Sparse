@@ -1,37 +1,9 @@
-## Welcome to GitHub Pages
+## Poisson2Sparse: Self-Supervised Poisson Denoising From a Single Image
 
-You can use the [editor on GitHub](https://github.com/tacalvin/Poisson2Sparse/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+### Abstract
+Image enhancement approaches often assume that the noise is signal independent, and approximate the degradation model as zero-mean additive Gaussian noise. However, this assumption does not hold for biomedical imaging systems where sensor-based sources of noise are proportional to signal strengths, and the noise is better represented as a Poisson process. In this work, we explore a sparsity and dictionary learning-based approach and present a novel self-supervised learning method for single-image denoising where the noise is approximated as a Poisson process, requiring no clean ground-truth data. Specifically, we approximate traditional iterative optimization algorithms for image denoising with a recurrent neural network which enforces sparsity with respect to the weights of the network. Since the sparse representations are based on the underlying image, it is able to suppress the spurious components (noise) in the image patches, thereby introducing implicit regularization for denoising task through the network structure. Experiments on two bio-imaging datasets demonstrate that our method outperforms the state-of-the-art approaches in terms of PSNR and SSIM. Our qualitative results demonstrate that, in addition to higher performance on standard quantitative metrics, we are able to recover much more subtle details than other compared approaches.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+### Code
+Coming Soon!
 
-### Markdown
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/tacalvin/Poisson2Sparse/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
