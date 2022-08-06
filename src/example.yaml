@@ -1,0 +1,25 @@
+dev: false
+experiment_cfg:
+  LAM: 2
+  cuda: true
+  dataset:
+    dataset_path: ./data/PINCAT10
+    extension: png
+    gtandraw: true
+    resize: false
+  input_type: noise
+  l1: 1.0e-05 #l1 regularization
+  lr: 0.0001
+  num_iter: 5500
+  optimizer: Adam
+  poisson_loss: true
+experiment_pipeline: ours
+model_cfg:
+  channels: 1
+  kernel_size: 3
+  norm: false
+  num_filters: 512
+  num_iter: 10
+  stride: 1
+  threshold: 0.01
+output_dir: ./results/PINCAT10/
