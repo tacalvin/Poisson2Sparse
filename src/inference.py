@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torchvision.io as io
 import torchvision.transforms.functional as TF
-
+import torch.nn.functional as F
 from tqdm import trange
 
 import os
@@ -14,7 +14,7 @@ import yaml
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--config_path", default="src/example.yaml", help="Model and Hyperparamter Config"
+    "--cfg_path", default="src/example.yaml", help="Model and Hyperparamter Config"
 )
 parser.add_argument("--input_path", required=True, help="Path to image to denoise")
 parser.add_argument("--output_path", required=True, help="Path to save denoised image")
@@ -42,7 +42,7 @@ Loader.add_constructor('!include', Loader.include)
 
 def main(noisy, config, experiment_cfg):
     model = build_model(config)
-    device = torch.device("cuda") if torch.cuda.is_avaiilable() else torch.device("cpu")
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     model.to(device)
     print(
         "Number of params: ",
@@ -61,19 +61,20 @@ def main(noisy, config, experiment_cfg):
     out_avg = None
 
     noisy_in = noisy
+    noisy_in = noisy_in.to(device)
 
     H = None
     W = None
-    if noisy.shape[2] != noisy.shape[3]:
-        H = noisy.shape[2]
-        W = noisy.shape[3]
-        val_size = (max(H, W) + 31) // 32 * 32
-        noisy_in = TF.pad(
-            noisy,
-            (0, 0, val_size - noisy.shape[3], val_size - noisy.shape[2]),
-            padding_mode="reflect",
-        )
-
+    # if noisy.shape[1] != noisy.shape[2]:
+    #     H = noisy.shape[2]
+    #     W = noisy.shape[3]
+    #     val_size = (max(H, W) + 31) // 32 * 32
+    #     noisy_in = TF.pad(
+    #         noisy,
+    #         (0, 0, val_size - noisy.shape[3], val_size - noisy.shape[2]),
+    #         padding_mode="reflect",
+    #     )
+    
     t = trange(experiment_cfg["num_iter"])
     pll = nn.PoissonNLLLoss(log_input=False, full=True)
     last_net = None
@@ -81,6 +82,8 @@ def main(noisy, config, experiment_cfg):
     for i in t:
 
         mask1, mask2 = generate_mask_pair(noisy_in)
+        mask1 = mask1.to(device)
+        mask2 = mask2.to(device)
         with torch.no_grad():
             noisy_denoised = model(noisy_in)
             noisy_denoised = torch.clamp(noisy_denoised, 0.0, 1.0)
@@ -129,7 +132,7 @@ def main(noisy, config, experiment_cfg):
         loss.backward()
 
         with torch.no_grad():
-            out_full = model(noisy).detach().cpu()
+            out_full = model(noisy_in).detach().cpu()
             if H is not None:
                 out_full = out_full[:, :, :H, :W]
             if out_avg is None:
@@ -137,7 +140,7 @@ def main(noisy, config, experiment_cfg):
             else:
                 out_avg = out_avg * exp_weight + out_full * (1 - exp_weight)
                 out_avg = out_avg.detach().cpu()
-            noisy_psnr = psnr(out_full, noisy.detach().cpu(), max_val=1.0).item()
+            noisy_psnr = psnr(out_full, noisy_in.detach().cpu(), max_val=1.0).item()
 
         if (i + 1) % 50:
             if noisy_psnr - psrn_noisy_last < -4 and last_net is not None:
@@ -158,7 +161,7 @@ def main(noisy, config, experiment_cfg):
         optimizer.zero_grad()
 
         with torch.no_grad():
-            out_full = model(noisy).detach().cpu()
+            out_full = model(noisy_in).detach().cpu()
             if H is not None:
                 out_full = out_full[:, :, :H, :W]
         if out_avg is None:
@@ -176,8 +179,8 @@ if __name__ == "__main__":
     with open(args.cfg_path, "r") as f:
         cfg = yaml.load(f, Loader=Loader)
 
-    noisy = io.read_image(args.input_path)
+    noisy = io.read_image(args.input_path).unsqueeze(0)/255
     
-    out_image = main(noisy, cfg, cfg['experiment_cfg'])
-
-    io.write_png(out_image, args.output_path)
+    out_image = main(noisy, cfg, cfg['experiment_cfg']) * 255
+    out_image = out_image.type(torch.uint8).squeeze(0)
+    io.write_png(out_image, args.output_path) 
