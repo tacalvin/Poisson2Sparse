@@ -1,4 +1,4 @@
-FROM nvidia/cuda:9.0-cudnn7-devel
+FROM continuumio/anaconda3
 
 # Install system dependencies
 RUN apt-get update \
@@ -11,18 +11,11 @@ RUN apt-get update \
 # Install python miniconda3 + requirements
 ENV MINICONDA_HOME="/opt/miniconda"
 ENV PATH="${MINICONDA_HOME}/bin:${PATH}"
-RUN curl -o Miniconda3-latest-Linux-x86_64.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
-    && chmod +x Miniconda3-latest-Linux-x86_64.sh \
-    && ./Miniconda3-latest-Linux-x86_64.sh -b -p "${MINICONDA_HOME}" \
-    && rm Miniconda3-latest-Linux-x86_64.sh
-COPY environment.yml environment.yml
-RUN conda env update -n=root --file=environment.yml
-RUN conda clean -y -i -l -p -t && \
-    rm environment.yml
+COPY environment.yaml environment.yaml
+RUN conda env create --name p2s --file=environment.yaml
 
 # 
-RUN git clone https://github.com/tacalvin/Poisson2Sparse
 WORKDIR /Poisson2Sparse
+COPY src /Poisson2Sparse
 
-
-
+ENTRYPOINT [ "bash"]
